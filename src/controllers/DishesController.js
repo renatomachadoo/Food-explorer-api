@@ -1,0 +1,137 @@
+const AppError = require("../utils/AppError")
+const knex = require("../database/knex")
+
+class DishesController {
+  async create(request, response){
+    const { name, description, image, price, category, ingredients } = request.body
+
+    if(!name || !description || !price || !category || !ingredients){
+      throw new AppError("Todos os campos têm de estar preenchidos.")
+    }
+
+    let categoryId
+    const categoryExists = await knex("categories").where({ name : category }).first()
+
+    if(categoryExists){
+      categoryId = categoryExists.id
+    }else {
+      const [categoryCreated] = await knex("categories").insert({ name : category})
+      categoryId = categoryCreated
+    }
+
+    const [dishId] = await knex("dishes").insert({ name, description, price, category_id : categoryId})
+
+    const ingredientsToInsert = ingredients.map( ingredient => {
+      return {
+        name : ingredient,
+        dish_id : dishId
+      }
+    })
+
+    await knex("ingredients").insert(ingredientsToInsert)
+
+    return response.json("Prato criado com sucesso.")
+  }
+
+  async update(request, response){
+    const { name, description, image, price, category, ingredients, dishId } = request.body
+
+    if(!dishId){
+      throw new AppError("Nenhum prato encontrado.")
+    }
+
+    const [dishExists] = await knex("dishes").where({ id : dishId })
+
+    if(!dishExists){
+      throw new AppError("Nenhum prato encontrado.")
+    }
+    
+    let categoryExists = await knex("categories").where({ name : category }).first()
+    if(!categoryExists){
+      const [categoryId] = await knex("categories").insert({ name : category})
+      categoryExists = categoryId
+    }
+
+    await knex('ingredients').where({ dish_id: dishExists.id }).del()
+    
+    dishExists.name = name ?? dishExists.name
+    dishExists.description = description ?? dishExists.description
+    dishExists.price = price ?? dishExists.price
+    dishExists.category_id = categoryExists.id
+
+    const ingredientsToInsert = ingredients.map( ingredient => {
+      return {
+        name : ingredient,
+        dish_id : dishExists.id
+      }
+    })
+
+    await knex("ingredients").insert(ingredientsToInsert)
+    await knex("dishes").where({ id : dishExists.id }).update(dishExists)
+
+    return response.json("Prato atualizado com sucesso.")
+  }
+
+  async delete(request, response){
+    const { id } = request.params
+
+    await knex('dishes').where({ id }).del()
+
+    return response.json()
+  }
+
+  async show(request, response){
+    const { id } = request.params
+
+    const dish = await knex("dishes").where({ id }).first()
+
+    if(!dish){
+      throw new AppError("Prato não encontrado.")
+    }
+
+    const category = await knex("categories").where({ id : dish.category_id }).first()
+    
+    const ingredients = await knex("ingredients").select("name").where({ dish_id : dish.id })
+
+    delete dish.category_id
+
+    dish.category = category.name
+    dish.ingredients = ingredients
+
+    return response.json(dish)
+  }
+
+  async index(request, response){
+    const { search } = request.query
+
+    const dishes = await knex("ingredients")
+      .select([
+        "dishes.id",
+        "dishes.name",
+        "dishes.description",
+        "dishes.price",
+      ])
+      .leftJoin('dishes', {'dishes.id': 'ingredients.dish_id'})
+      .whereLike("ingredients.name", `%${search}%`)
+      .orWhereLike("dishes.name", `%${search}%`)
+      .groupBy("dishes.id")
+
+
+    const allIngredients = await knex("ingredients")
+
+    const dishesToReturn = dishes.map( dish => {
+      dish.ingredients = []
+      const dishIngredients = allIngredients.map( ingredient => {
+        if(ingredient.dish_id === dish.id){
+          dish.ingredients.push(ingredient.name)
+        }
+      })
+      return dish
+    })
+    
+
+    return response.json(dishesToReturn)
+  }
+}
+
+module.exports = DishesController
