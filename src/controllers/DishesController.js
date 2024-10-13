@@ -1,6 +1,6 @@
 const AppError = require("../utils/AppError")
 const knex = require("../database/knex")
-
+const DiskStorage = require("../providers/DiskStorage")
 class DishesController {
   async create(request, response){
     const { name, description, image, price, category, ingredients } = request.body
@@ -75,6 +75,14 @@ class DishesController {
   async delete(request, response){
     const { id } = request.params
 
+    const diskStorage = new DiskStorage()
+
+    const dish = await knex("dishes").where({ id }).first()
+
+    if(dish && dish.image){
+      await diskStorage.deleteFile(dish.image)
+    }
+
     await knex('dishes').where({ id }).del()
 
     return response.json()
@@ -121,7 +129,7 @@ class DishesController {
 
     const dishesToReturn = dishes.map( dish => {
       dish.ingredients = []
-      const dishIngredients = allIngredients.map( ingredient => {
+      allIngredients.map( ingredient => {
         if(ingredient.dish_id === dish.id){
           dish.ingredients.push(ingredient.name)
         }
