@@ -85,10 +85,12 @@ class DishesController {
 
     await knex('dishes').where({ id }).del()
 
-    const dishWithCategory = await knex("dishes").where({ category_id : dish.category_id }).first()
-
-    if(!dishWithCategory){
-      await knex("categories").where({ id : dish.category_id }).del()
+    if(dish && dish.category_id){
+      const dishWithCategory = await knex("dishes").where({ category_id : dish.category_id }).first()
+  
+      if(!dishWithCategory){
+        await knex("categories").where({ id : dish.category_id }).del()
+      }
     }
 
     return response.json()
