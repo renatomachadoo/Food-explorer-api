@@ -16,6 +16,12 @@ class FavoriteDishesController{
             throw new AppError("Prato não encontrado.")
         }
 
+        const alreadyInFavorites = await knex("favorite_dishes").where({ user_id : user_id, dish_id : dishExists.id }).first()
+
+        if(alreadyInFavorites){
+            throw new AppError("Este prato já está nos favoritos.")
+        }
+
         await knex("favorite_dishes").insert({ user_id : user_id, dish_id : dishExists.id })
 
         return response.json("Prato adicionado aos favoritos com sucesso.")

@@ -150,12 +150,15 @@ class DishesController {
       })
 
       const matchedCategory = categories.find(category => category.id === dish.category_id)
-
       dish.category = matchedCategory.name
-
-      const isFavorite = 
-
       delete dish.category_id
+
+      const isFavoriteMatched = userFavorites.find( userFavorite => userFavorite.dish_id === dish.id)
+      if(isFavoriteMatched){
+        dish.isFavorite = true
+      }else{
+        dish.isFavorite = false
+      }
 
       return dish
     })
