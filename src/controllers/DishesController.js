@@ -119,6 +119,9 @@ class DishesController {
 
   async index(request, response){
     const { search } = request.query
+    const user_id = request.user.id
+
+    const userFavorites = await knex("favorite_dishes").where({ user_id })
 
     const dishes = await knex("ingredients")
       .select([
@@ -126,12 +129,15 @@ class DishesController {
         "dishes.name",
         "dishes.description",
         "dishes.price",
+        "dishes.category_id"
       ])
-      .leftJoin('dishes', {'dishes.id': 'ingredients.dish_id'})
+      .innerJoin('dishes', {'dishes.id': 'ingredients.dish_id'})
       .whereLike("ingredients.name", `%${search}%`)
       .orWhereLike("dishes.name", `%${search}%`)
       .groupBy("dishes.id")
 
+
+    const categories = await knex("categories")
 
     const allIngredients = await knex("ingredients")
 
@@ -142,9 +148,17 @@ class DishesController {
           dish.ingredients.push(ingredient.name)
         }
       })
+
+      const matchedCategory = categories.find(category => category.id === dish.category_id)
+
+      dish.category = matchedCategory.name
+
+      const isFavorite = 
+
+      delete dish.category_id
+
       return dish
     })
-    
 
     return response.json(dishesToReturn)
   }
