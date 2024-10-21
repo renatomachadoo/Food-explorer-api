@@ -4,7 +4,7 @@ const knex = require("../database/knex")
 class UsersValidateController {
   async index(request, response){
     const { user } = request
-
+    
     const checkUserExists = await knex("users").where({ id : user.id }).first()
 
     if(!checkUserExists){
