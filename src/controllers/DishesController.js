@@ -123,7 +123,7 @@ class DishesController {
 
     const userFavorites = await knex("favorite_dishes").where({ user_id })
 
-    const dishes = await knex("ingredients")
+    const dishesQuery = knex("ingredients")
       .select([
         "dishes.id",
         "dishes.name",
@@ -133,10 +133,15 @@ class DishesController {
         "dishes.image"
       ])
       .innerJoin('dishes', {'dishes.id': 'ingredients.dish_id'})
-      .whereLike("ingredients.name", `%${search}%`)
-      .orWhereLike("dishes.name", `%${search}%`)
-      .groupBy("dishes.id")
+      .groupBy("dishes.id");
 
+    if (search) {
+      dishesQuery
+        .whereLike("ingredients.name", `%${search}%`)
+        .orWhereLike("dishes.name", `%${search}%`);
+    }
+
+    const dishes = await dishesQuery;
 
     const categories = await knex("categories")
 
