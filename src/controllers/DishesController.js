@@ -129,7 +129,8 @@ class DishesController {
         "dishes.name",
         "dishes.description",
         "dishes.price",
-        "dishes.category_id"
+        "dishes.category_id",
+        "dishes.image"
       ])
       .innerJoin('dishes', {'dishes.id': 'ingredients.dish_id'})
       .whereLike("ingredients.name", `%${search}%`)
