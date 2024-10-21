@@ -30,7 +30,7 @@ class DishesController {
 
     await knex("ingredients").insert(ingredientsToInsert)
 
-    return response.json("Prato criado com sucesso.")
+    return response.json({ message : "Prato criado com sucesso.", dish_id : dishId})
   }
 
   async update(request, response){
