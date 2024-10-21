@@ -3,7 +3,7 @@ const knex = require("../database/knex")
 const DiskStorage = require("../providers/DiskStorage")
 class DishesController {
   async create(request, response){
-    const { name, description, image, price, category, ingredients } = request.body
+    const { name, description, price, category, ingredients } = request.body
 
     if(!name || !description || !price || !category || !ingredients){
       throw new AppError("Todos os campos têm de estar preenchidos.")
@@ -30,7 +30,7 @@ class DishesController {
 
     await knex("ingredients").insert(ingredientsToInsert)
 
-    return response.json("Prato criado com sucesso.")
+    return response.json({ message : "Prato criado com sucesso.", dish_id : dishId})
   }
 
   async update(request, response){
