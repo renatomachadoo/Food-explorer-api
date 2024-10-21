@@ -15,3 +15,10 @@ Também é possivel utilizar a barra de pesquisa que vai retornar todos os prato
 - Utilizar npm run dev para rodar o projeto e já está!
 
 - As rotas estão todas no ficheiro INSOMNIA_ROUTES é só fazer o import no insomnia.
+
+# Frontend
+- Link do frontend: https://github.com/renatomachadoo/Food-explorer-frontend
+
+# BUILD
+Pode ter algum delay pois está em uma host free só para fins de aprendizagem.
+- Endereço online: https://food-explorer-api-7wo6.onrender.com
